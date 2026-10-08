@@ -91,10 +91,9 @@ if (-not $Iscc -or -not (Test-Path $Iscc)) {
 }
 
 Write-Host "compiling $issPath with $Iscc"
-# ISCC writes its progress to *stderr*. With $ErrorActionPreference = 'Stop' those
-# records are promoted to terminating errors, which cuts the compiler off with no
-# output and leaves $LASTEXITCODE unset -- so relax it for this one call and check
-# the exit code explicitly.
+# ISCC writes its progress to stderr, and with $ErrorActionPreference = 'Stop' a
+# native command's stderr can be promoted to a terminating error. Relax it for this
+# one call and check the exit code explicitly instead.
 $prevEap = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 & $Iscc "/O$outDir" $issPath 2>&1 | Out-Host
