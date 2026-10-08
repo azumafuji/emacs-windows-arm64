@@ -24,7 +24,18 @@ commit="$(git -C "$SRC" rev-parse HEAD)"
 echo "source commit: $commit"
 echo "$commit" > "$WORK/.emacs-commit"
 if [ -n "$EMACS_COMMIT" ]; then
-  [ "$commit" = "$EMACS_COMMIT" ] || die "commit mismatch: pinned $EMACS_COMMIT in scripts/config.sh, but $EMACS_TAG resolved to $commit"
+  if [ "$commit" != "$EMACS_COMMIT" ]; then
+    die "the source tree at $SRC is at $commit, but scripts/config.sh pins $EMACS_COMMIT.
+  This tree is not the source this build is meant to use, so the build would be
+  mislabelled. Either remove it and clone fresh:
+
+      rm -rf '$SRC'
+
+  or move it to the pinned commit:
+
+      git -C '$SRC' fetch --depth 1 origin tag $EMACS_TAG
+      git -C '$SRC' checkout --detach $EMACS_COMMIT"
+  fi
   echo "commit matches the pin in scripts/config.sh"
 else
   echo "warning: EMACS_COMMIT is not pinned; the build is only as fixed as the tag" >&2
