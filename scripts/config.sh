@@ -67,6 +67,17 @@ variant_cppflags() {
 
 variant_ldflags() { echo "-flto=thin -fuse-ld=lld -lpthread"; }
 
+# Windows PowerShell is normally on PATH inside an MSYS2 shell, but not always
+# (CI shells start from the Windows PATH). Fall back to the well-known location.
+powershell_exe() {
+  if command -v powershell.exe >/dev/null 2>&1; then command -v powershell.exe; return; fi
+  local p
+  for p in /c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe /c/Windows/System32/WindowsPowerShell/v1.0/pwsh.exe; do
+    [ -x "$p" ] && { echo "$p"; return; }
+  done
+  echo powershell.exe
+}
+
 variant_appname() {
   case "$1" in
     portable) echo "emacs-$EMACS_VERSION-aarch64" ;;

@@ -29,8 +29,8 @@ for v in $VARIANTS; do
   bash "$HERE/05-package-portable.sh" "$v"
   bash "$HERE/smoke-test.sh" "$WORK/portable/$(variant_appname "$v")/bin/emacs.exe" clean
 
-  if command -v powershell.exe >/dev/null; then
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$HERE/build-installer.ps1")" -Variant "$v"
+  if [ -n "$(powershell_exe)" ]; then
+    "$(powershell_exe)" -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$HERE/build-installer.ps1")" -Variant "$v"
   else
     echo "warning: powershell.exe not found; skipping the installer" >&2
   fi

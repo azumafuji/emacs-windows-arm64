@@ -96,5 +96,5 @@ EOF
 mkdir -p "$DIST"
 ZIP="$DIST/$APPNAME-portable.zip"
 echo "=== writing $ZIP ==="
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$(dirname "$BASH_SOURCE")/zip-dir.ps1")" -Source "$(cygpath -w "$PORT")" -Destination "$(cygpath -w "$ZIP")"
+"$(powershell_exe)" -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$(dirname "$BASH_SOURCE")/zip-dir.ps1")" -Source "$(cygpath -w "$PORT")" -Destination "$(cygpath -w "$ZIP")"
 echo "portable zip: $ZIP"
