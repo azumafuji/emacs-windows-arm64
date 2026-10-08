@@ -13,15 +13,6 @@ require_msys2
 VARIANTS="${*:-portable native}"
 
 mkdir -p "$DIST"
-{
-  echo "Emacs $EMACS_VERSION (source tag $EMACS_TAG)"
-  echo "source URL    : $EMACS_GIT"
-  echo "pinned commit : ${EMACS_COMMIT:-(not pinned)}"
-  echo "source commit : $(cat "$WORK/.emacs-commit" 2>/dev/null || echo unknown)"
-  echo "toolchain     : $(${CC:-clang} --version 2>/dev/null | head -1)"
-  echo "environment   : MSYSTEM=$MSYSTEM MINGW_CHOST=$MINGW_CHOST"
-  echo "date          : $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-} > "$DIST/BUILD-INFO.txt"
 
 bash "$HERE/01-fetch-source.sh"
 bash "$HERE/02-apply-patches.sh"
@@ -41,6 +32,17 @@ done
 
 # Record the exact toolchain so a later rebuild can be compared.
 pacman -Q > "$DIST/PACKAGES.txt" 2>/dev/null || true
+
+# Written after the build so it records the commit that was actually used.
+{
+  echo "Emacs $EMACS_VERSION (source tag $EMACS_TAG)"
+  echo "source URL    : $EMACS_GIT"
+  echo "pinned commit : ${EMACS_COMMIT:-(not pinned)}"
+  echo "source commit : $(cat "$WORK/.emacs-commit" 2>/dev/null || echo unknown)"
+  echo "toolchain     : $(${CC:-clang} --version 2>/dev/null | head -1)"
+  echo "environment   : MSYSTEM=$MSYSTEM MINGW_CHOST=$MINGW_CHOST"
+  echo "date          : $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+} > "$DIST/BUILD-INFO.txt"
 
 echo
 echo "=== artifacts in $DIST ==="

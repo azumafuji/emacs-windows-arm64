@@ -22,7 +22,7 @@ jobs:
     runs-on: windows-11-arm
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up MSYS2 (CLANGARM64)
         uses: msys2/setup-msys2@v2
@@ -70,7 +70,7 @@ jobs:
         run: bash scripts/build-all.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: emacs-arm64-${{ github.sha }}
           path: dist/*
@@ -85,7 +85,7 @@ jobs:
     runs-on: windows-11-arm
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The release is named after the tag, so a tag disagreeing with the source
       # version would publish a correct binary under a misleading name.
