@@ -123,7 +123,7 @@ jobs:
           if ($files.Count -lt 4) { throw "expected the packaged artifacts in dist/, found $($files.Count) file(s)" }
 
       - name: Attach to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
           fail_on_unmatched_files: true
