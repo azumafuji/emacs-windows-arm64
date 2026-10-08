@@ -107,13 +107,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $sha = "${{ github.sha }}"
-          $runs = gh run list --repo "$env:GITHUB_REPOSITORY" --commit $sha --status success --limit 5 --json databaseId | ConvertFrom-Json
+          $name = "emacs-arm64-$sha"
+          # More than one run can succeed for the same commit: the build on main,
+          # and any tag runs, which publish but produce no artifacts. So pick the
+          # run that actually has the artifact, not merely the most recent
+          # success -- a previous tag run would otherwise be chosen and the
+          # download would fail with "no valid artifacts found".
+          $runs = gh run list --repo "$env:GITHUB_REPOSITORY" --commit $sha --status success --limit 10 --json databaseId | ConvertFrom-Json
           if (-not $runs) {
             throw "No successful workflow run found for commit $sha. Tag a commit that has already passed CI."
           }
-          $id = $runs[0].databaseId
+          $id = $null
+          foreach ($r in $runs) {
+            $names = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$($r.databaseId)/artifacts" --jq '.artifacts[].name' 2>$null
+            if ($names -contains $name) { $id = $r.databaseId; break }
+          }
+          if (-not $id) {
+            throw "None of the successful runs for $sha has the artifact $name."
+          }
           Write-Host "reusing the artifacts from run $id (commit $sha)"
-          gh run download $id --repo "$env:GITHUB_REPOSITORY" --name "emacs-arm64-$sha" -D dist
+          gh run download $id --repo "$env:GITHUB_REPOSITORY" --name $name -D dist
 
       - name: Check what was downloaded
         shell: pwsh
