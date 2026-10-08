@@ -6,11 +6,18 @@
 # a per-user Inno Setup install, or in Program Files, in that order.
 param(
   [Parameter(Mandatory = $true)][ValidateSet('portable', 'native')][string]$Variant,
-  [string]$Root = (Split-Path -Parent $PSScriptRoot),
+  [string]$Root = '',
   [string]$Iscc = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+# $PSScriptRoot is NOT available in a param() block: parameter binding happens
+# before the automatic variables are set, so a default of
+# (Split-Path -Parent $PSScriptRoot) silently yields an empty string.
+# Resolve it here instead, and let the caller pass -Root explicitly.
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $Root) { $Root = Split-Path -Parent $scriptDir }
 
 $VERSION = '31.1'
 $meta = @{
@@ -53,7 +60,7 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $generated = Join-Path $Root 'installer\generated'
 New-Item -ItemType Directory -Force -Path $generated | Out-Null
 
-$template = Get-Content (Join-Path $PSScriptRoot '..\installer\emacs.iss.in') -Raw
+$template = Get-Content (Join-Path $scriptDir '..\installer\emacs.iss.in') -Raw
 $iss = $template.
   Replace('@@APPNAME@@',   $meta.AppName).
   Replace('@@VERSION@@',   $VERSION).
@@ -84,6 +91,14 @@ if (-not $Iscc -or -not (Test-Path $Iscc)) {
 }
 
 Write-Host "compiling $issPath with $Iscc"
-& $Iscc "/O$outDir" $issPath
-if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+# ISCC writes its progress to *stderr*. With $ErrorActionPreference = 'Stop' those
+# records are promoted to terminating errors, which cuts the compiler off with no
+# output and leaves $LASTEXITCODE unset -- so relax it for this one call and check
+# the exit code explicitly.
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+& $Iscc "/O$outDir" $issPath 2>&1 | Out-Host
+$isccExit = $LASTEXITCODE
+$ErrorActionPreference = $prevEap
+if ($isccExit -ne 0) { throw "ISCC failed with exit code $isccExit" }
 Write-Host "installer written to $outDir\$($meta.OutBase).exe"
