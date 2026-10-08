@@ -7,3 +7,6 @@ installer/generated/
 *.log
 bench/results.csv
 bench/summary.csv
+
+# transient release notes used when filling in a release
+RELEASE-NOTES.md
