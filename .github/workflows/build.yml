@@ -11,10 +11,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write   # create the release
+  actions: read     # fetch the artifact produced by the earlier run
 
 jobs:
   build:
+    # A tag must never rebuild: the commit it points at was already built and
+    # smoke-tested when it landed. The release job below reuses that artifact.
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: windows-11-arm
     timeout-minutes: 180
     steps:
@@ -72,14 +76,41 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  release:
+    # Tags only, and deliberately NOT dependent on the build job above: the build
+    # it needs already happened in an earlier run for the same commit. So a tag
+    # publishes an artifact CI has already verified instead of rebuilding it
+    # (~30 minutes saved), and it can only ever publish a build that passed.
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    steps:
+      - name: Find the verified build for this commit
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $sha = "${{ github.sha }}"
+          $runs = gh run list --repo "$env:GITHUB_REPOSITORY" --commit $sha --status success --limit 5 --json databaseId | ConvertFrom-Json
+          if (-not $runs) {
+            throw "No successful workflow run found for commit $sha. Tag a commit that has already passed CI."
+          }
+          $id = $runs[0].databaseId
+          Write-Host "reusing the artifacts from run $id (commit $sha)"
+          gh run download $id --repo "$env:GITHUB_REPOSITORY" --name "emacs-arm64-$sha" -D dist
+
+      - name: Check what was downloaded
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem dist -File
+          $files | ForEach-Object { "  {0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
+          if ($files.Count -lt 4) { throw "expected the packaged artifacts in dist/, found $($files.Count) file(s)" }
+
       - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           fail_on_unmatched_files: true
-          # Without a body, every release would be created empty. The generated notes
-          # are appended after this text.
           generate_release_notes: true
           body: |
             GNU Emacs **31.1** for **Windows on ARM64** (aarch64), built from the official
