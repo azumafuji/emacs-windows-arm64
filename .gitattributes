@@ -1,0 +1,21 @@
+# Line endings matter here.
+#
+# Shell scripts must keep LF, because MSYS2 bash treats a carriage return in
+# "set -euo pipefail" or in the shebang as a syntax error -- even though this
+# repository is developed on Windows with core.autocrlf=true.
+#
+# The patch files and the manifest are verified against SHA-256 sums and must
+# round-trip byte for byte, so they are explicitly excluded from normalisation.
+* text=auto
+
+*.sh   text eol=lf
+*.in   text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+*.el   text eol=lf
+*.ps1  text eol=crlf
+SHA256SUMS text eol=lf
+
+# byte-exact: checksums are verified before use
+*.patch    -text
+*.manifest -text

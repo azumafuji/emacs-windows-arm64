@@ -1,0 +1,14 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+This repository contains build scripts, patches and documentation for
+redistributing GNU Emacs 31.1 on Windows on ARM64.
+
+GNU Emacs itself is licensed under the GNU General Public License version 3 or
+later. Because this repository distributes binaries of Emacs (via GitHub
+Releases) together with the exact recipe used to produce them, the whole
+repository is distributed under the same licence.
+
+The full text of the GNU General Public License version 3 is the same text that
+ships with Emacs itself; see the COPYING file in any Emacs distribution, or
+<https://www.gnu.org/licenses/gpl-3.0.txt>.

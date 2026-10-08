@@ -1,0 +1,9 @@
+# build products
+work/
+dist/
+installer/generated/
+
+# logs and benchmark output
+*.log
+bench/results.csv
+bench/summary.csv

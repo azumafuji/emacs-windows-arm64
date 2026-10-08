@@ -1,0 +1,125 @@
+; GNU Emacs for Windows on ARM64 - Inno Setup script template.
+; Substituted and compiled by scripts/build-installer.ps1.
+; Requires Inno Setup 6.3 or newer (ARM64 support).
+
+#define AppName "@@APPNAME@@"
+#define AppVersion "@@VERSION@@"
+#define SourceDir "@@SOURCEDIR@@"
+
+[Setup]
+AppId={{@@APPID@@}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppVerName={#AppName} {#AppVersion}
+AppPublisher=GNU Project
+AppPublisherURL=https://www.gnu.org/software/emacs/
+DefaultDirName={autopf}\Emacs\@@APPDIR@@
+DefaultGroupName={#AppName}
+DisableProgramGroupPage=yes
+LicenseFile={#SourceDir}\share\emacs\@@VERSION@@\etc\COPYING
+InfoBeforeFile={#SourceDir}\README-portable.txt
+OutputDir=@@OUTDIR@@
+OutputBaseFilename=@@OUTBASE@@
+@@ICONLINE@@
+UninstallDisplayIcon={app}\bin\emacs.exe
+Compression=lzma2/max
+SolidCompression=yes
+WizardStyle=modern
+ChangesEnvironment=yes
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+MinVersion=10.0
+VersionInfoCompany=GNU Project
+VersionInfoDescription=@@DESC@@
+VersionInfoProductName=GNU Emacs
+VersionInfoProductVersion={#AppVersion}
+VersionInfoVersion={#AppVersion}.0.0
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "addtopath"; Description: "Add Emacs to the PATH environment variable"; GroupDescription: "Integration:"
+Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Integration:"; Flags: unchecked
+
+[Files]
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\Emacs"; Filename: "{app}\bin\runemacs.exe"; IconFilename: "{app}\bin\emacs.exe"; Comment: "{#AppName} {#AppVersion}"
+Name: "{group}\Emacs (console)"; Filename: "{cmd}"; Parameters: "/k ""{app}\bin\emacs.exe"" -nw"; IconFilename: "{app}\bin\emacs.exe"
+Name: "{autodesktop}\Emacs"; Filename: "{app}\bin\runemacs.exe"; IconFilename: "{app}\bin\emacs.exe"; Tasks: desktopicon
+
+[Registry]
+Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\bin"; Tasks: addtopath; Check: NeedsAddPathUser
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\bin"; Tasks: addtopath; Check: NeedsAddPathMachine
+
+[Run]
+Filename: "{app}\bin\runemacs.exe"; Description: "Launch Emacs"; Flags: nowait postinstall skipifsilent
+
+[Code]
+{ Both PATH entries must be guarded by IsAdminInstallMode. A check that only asks
+  "is the directory already on PATH?" returns True during a per-user install,
+  Inno then attempts the machine-wide write, and the install dies with
+  "RegCreateKeyEx failed; code 5. Access is denied." }
+function PathPresent(Root: Integer; SubKey: String; Dir: String): Boolean;
+var Paths: String;
+begin
+  if not RegQueryStringValue(Root, SubKey, 'Path', Paths) then
+    Result := False
+  else
+    Result := Pos(';' + Uppercase(Dir) + ';', ';' + Uppercase(Paths) + ';') > 0;
+end;
+
+function NeedsAddPathUser: Boolean;
+begin
+  Result := (not IsAdminInstallMode)
+            and (not PathPresent(HKCU, 'Environment', ExpandConstant('{app}\bin')));
+end;
+
+function NeedsAddPathMachine: Boolean;
+begin
+  Result := IsAdminInstallMode
+            and (not PathPresent(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+                                 ExpandConstant('{app}\bin')));
+end;
+
+procedure RemoveFromOne(Root: Integer; SubKey: String);
+var Paths, NewPaths, Item, Rest: String;
+    Changed: Boolean;
+begin
+  if not RegQueryStringValue(Root, SubKey, 'Path', Paths) then exit;
+  NewPaths := ''; Changed := False; Rest := Paths;
+  while Rest <> '' do
+  begin
+    if Pos(';', Rest) > 0 then
+    begin Item := Copy(Rest, 1, Pos(';', Rest) - 1); Rest := Copy(Rest, Pos(';', Rest) + 1, Length(Rest)); end
+    else begin Item := Rest; Rest := ''; end;
+    Item := Trim(Item);
+    if Item = '' then continue;
+    if CompareText(Item, ExpandConstant('{app}\bin')) = 0 then Changed := True
+    else begin
+      if NewPaths <> '' then NewPaths := NewPaths + ';';
+      NewPaths := NewPaths + Item;
+    end;
+  end;
+  if Changed then
+  begin
+    if NewPaths = '' then
+      RegDeleteValue(Root, SubKey, 'Path')
+    else
+      RegWriteExpandStringValue(Root, SubKey, 'Path', NewPaths);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    RemoveFromOne(HKCU, 'Environment');
+    if IsAdminInstallMode then
+      RemoveFromOne(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment');
+  end;
+end;
