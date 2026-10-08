@@ -78,3 +78,24 @@ jobs:
         with:
           files: dist/*
           fail_on_unmatched_files: true
+          # Without a body, every release would be created empty. The generated notes
+          # are appended after this text.
+          generate_release_notes: true
+          body: |
+            GNU Emacs **31.1** for **Windows on ARM64** (aarch64), built from the official
+            emacs-31.1 release with the four MSYS2 ARM64 patches applied.
+
+            | File | Use |
+            | --- | --- |
+            | `emacs-31.1-aarch64-portable.zip` | **Recommended.** Extract anywhere, run `bin\runemacs.exe`. Runs on any Windows on ARM64 PC. |
+            | `emacs-31.1-aarch64-setup.exe` | Installer for the same build: Start Menu entries, optional PATH entry, uninstaller. |
+            | `emacs-31.1-aarch64-native-portable.zip` | Built with `-mcpu=native` on the build machine's CPU. **Not portable** - it may not start on other ARM64 machines. |
+            | `emacs-31.1-aarch64-native-setup.exe` | Installer for the native build. |
+            | `BUILD-INFO.txt`, `PACKAGES.txt` | Toolchain, date and the exact MSYS2 package versions used. |
+
+            Requires 64-bit ARM Windows; it will not run on x86-64. There is no native Lisp
+            compilation on this platform (`libgccjit` does not exist for clangarm64), and the
+            binaries are unsigned, so expect SmartScreen warnings.
+
+            GNU Emacs is free software under the GPL-3.0-or-later; each archive ships `COPYING`
+            and `SOURCE-CODE.txt`.
