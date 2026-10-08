@@ -15,7 +15,7 @@ VARIANTS="${*:-portable native}"
 mkdir -p "$DIST"
 {
   echo "Emacs $EMACS_VERSION ($EMACS_TAG)"
-  echo "toolchain: $($CC --version 2>/dev/null | head -1 || clang --version | head -1)"
+  echo "toolchain: $(${CC:-clang} --version 2>/dev/null | head -1)"
   echo "MSYSTEM=$MSYSTEM MINGW_CHOST=$MINGW_CHOST"
   echo "date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 } > "$DIST/BUILD-INFO.txt"

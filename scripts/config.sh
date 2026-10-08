@@ -6,7 +6,8 @@ REPO_ROOT="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
 
 : "${EMACS_VERSION:=31.1}"
 : "${EMACS_TAG:=emacs-$EMACS_VERSION}"
-: "${EMACS_GIT:=https://git.savannah.gnu.org/git/emacs.git}"
+: "${EMACS_GIT:=https://github.com/emacs-mirror/emacs.git}"        # savannah is unreliable
+: "${EMACS_GIT_FALLBACK:=https://git.savannah.gnu.org/git/emacs.git}"
 : "${EMACS_COMMIT:=}"            # optional: pin the exact commit
 : "${WORK:=$REPO_ROOT/work}"
 : "${DIST:=$REPO_ROOT/dist}"
@@ -17,7 +18,7 @@ REPO_ROOT="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
 : "${TUNE_NATIVE:=native}"         # native build: this machine's own CPU features
 : "${PATCHES:=$REPO_ROOT/patches}"
 
-export EMACS_VERSION EMACS_TAG EMACS_GIT EMACS_COMMIT WORK DIST SRC JOBS PREFIX TUNE_PORTABLE TUNE_NATIVE PATCHES
+export EMACS_VERSION EMACS_TAG EMACS_GIT EMACS_GIT_FALLBACK EMACS_COMMIT WORK DIST SRC JOBS PREFIX TUNE_PORTABLE TUNE_NATIVE PATCHES
 
 die() { echo "error: $*" >&2; exit 1; }
 
