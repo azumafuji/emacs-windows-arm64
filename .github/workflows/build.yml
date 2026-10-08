@@ -46,6 +46,13 @@ jobs:
             mingw-w64-clang-aarch64-libtiff
             mingw-w64-clang-aarch64-git
             mingw-w64-clang-aarch64-tools
+            # MSYS-level tools: setup-msys2 installs only what is listed, and these
+            # are not pulled in by the mingw packages above.
+            patch
+            autoconf
+            automake
+            libtool
+            diffutils
             texinfo
 
       - name: Install Inno Setup

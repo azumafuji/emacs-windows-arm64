@@ -68,7 +68,8 @@ pacman -S --needed --noconfirm \
   mingw-w64-clang-aarch64-sqlite3 mingw-w64-clang-aarch64-lcms2 \
   mingw-w64-clang-aarch64-giflib mingw-w64-clang-aarch64-libjpeg-turbo \
   mingw-w64-clang-aarch64-libpng mingw-w64-clang-aarch64-libtiff \
-  mingw-w64-clang-aarch64-git mingw-w64-clang-aarch64-tools texinfo
+  mingw-w64-clang-aarch64-git mingw-w64-clang-aarch64-tools \\
+  patch autoconf automake libtool texinfo
 ```
 
 then build everything:
