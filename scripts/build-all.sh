@@ -14,10 +14,13 @@ VARIANTS="${*:-portable native}"
 
 mkdir -p "$DIST"
 {
-  echo "Emacs $EMACS_VERSION ($EMACS_TAG)"
-  echo "toolchain: $(${CC:-clang} --version 2>/dev/null | head -1)"
-  echo "MSYSTEM=$MSYSTEM MINGW_CHOST=$MINGW_CHOST"
-  echo "date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "Emacs $EMACS_VERSION (source tag $EMACS_TAG)"
+  echo "source URL    : $EMACS_GIT"
+  echo "pinned commit : ${EMACS_COMMIT:-(not pinned)}"
+  echo "source commit : $(cat "$WORK/.emacs-commit" 2>/dev/null || echo unknown)"
+  echo "toolchain     : $(${CC:-clang} --version 2>/dev/null | head -1)"
+  echo "environment   : MSYSTEM=$MSYSTEM MINGW_CHOST=$MINGW_CHOST"
+  echo "date          : $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 } > "$DIST/BUILD-INFO.txt"
 
 bash "$HERE/01-fetch-source.sh"

@@ -22,7 +22,11 @@ fi
 
 commit="$(git -C "$SRC" rev-parse HEAD)"
 echo "source commit: $commit"
-if [ -n "$EMACS_COMMIT" ] && [ "$commit" != "$EMACS_COMMIT" ]; then
-  die "commit mismatch: expected $EMACS_COMMIT, got $commit"
+echo "$commit" > "$WORK/.emacs-commit"
+if [ -n "$EMACS_COMMIT" ]; then
+  [ "$commit" = "$EMACS_COMMIT" ] || die "commit mismatch: pinned $EMACS_COMMIT in scripts/config.sh, but $EMACS_TAG resolved to $commit"
+  echo "commit matches the pin in scripts/config.sh"
+else
+  echo "warning: EMACS_COMMIT is not pinned; the build is only as fixed as the tag" >&2
 fi
 echo "$EMACS_VERSION" > "$WORK/.emacs-version"

@@ -85,6 +85,22 @@ jobs:
     runs-on: windows-11-arm
     timeout-minutes: 30
     steps:
+      - uses: actions/checkout@v4
+
+      # The release is named after the tag, so a tag disagreeing with the source
+      # version would publish a correct binary under a misleading name.
+      - name: Check the tag agrees with the source version
+        shell: pwsh
+        run: |
+          $line = Get-Content scripts/config.sh | Where-Object { $_ -match 'EMACS_VERSION:=' } | Select-Object -First 1
+          if (-not $line) { throw "could not find EMACS_VERSION in scripts/config.sh" }
+          $version = ($line -split ':=', 2)[1].TrimEnd('}"').Trim()
+          $tag = "${{ github.ref_name }}"
+          if (-not $tag.StartsWith("v$version-")) {
+            throw "tag '$tag' does not agree with EMACS_VERSION '$version' in scripts/config.sh (expected a name starting with 'v$version-')"
+          }
+          Write-Host "tag $tag agrees with EMACS_VERSION $version"
+
       - name: Find the verified build for this commit
         shell: pwsh
         env:

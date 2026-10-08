@@ -8,7 +8,10 @@ REPO_ROOT="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
 : "${EMACS_TAG:=emacs-$EMACS_VERSION}"
 : "${EMACS_GIT:=https://github.com/emacs-mirror/emacs.git}"        # savannah is unreliable
 : "${EMACS_GIT_FALLBACK:=https://git.savannah.gnu.org/git/emacs.git}"
-: "${EMACS_COMMIT:=}"            # optional: pin the exact commit
+# The commit behind the emacs-31.1 annotated tag (tag object 1f9518d2...).
+# Pinned so that a moved or re-pointed upstream tag fails the build loudly
+# instead of silently producing a different tree.
+: "${EMACS_COMMIT:=a360712c9d272d950d8d8255ef74570f7e90b7d9}"
 : "${WORK:=$REPO_ROOT/work}"
 : "${DIST:=$REPO_ROOT/dist}"
 : "${SRC:=$WORK/emacs}"
