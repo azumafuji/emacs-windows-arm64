@@ -25,11 +25,16 @@ jobs:
         with:
           msystem: CLANGARM64
           update: false
+          # setup-msys2 installs only what is listed here. The MSYS-level tools
+          # (patch, autoconf, automake, libtool, diffutils, texinfo) are not
+          # dependencies of the mingw packages, and objdump comes from llvm-tools,
+          # not from -tools. scripts/config.sh checks for all of them up front.
           install: >-
             mingw-w64-clang-aarch64-clang
             mingw-w64-clang-aarch64-autotools
             mingw-w64-clang-aarch64-make
             mingw-w64-clang-aarch64-pkgconf
+            mingw-w64-clang-aarch64-llvm-tools
             mingw-w64-clang-aarch64-harfbuzz
             mingw-w64-clang-aarch64-gnutls
             mingw-w64-clang-aarch64-libtree-sitter
@@ -45,9 +50,6 @@ jobs:
             mingw-w64-clang-aarch64-libpng
             mingw-w64-clang-aarch64-libtiff
             mingw-w64-clang-aarch64-git
-            mingw-w64-clang-aarch64-tools
-            # MSYS-level tools: setup-msys2 installs only what is listed, and these
-            # are not pulled in by the mingw packages above.
             patch
             autoconf
             automake

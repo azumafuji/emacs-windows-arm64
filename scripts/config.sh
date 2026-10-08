@@ -25,7 +25,11 @@ die() { echo "error: $*" >&2; exit 1; }
 require_msys2() {
   [ "${MSYSTEM:-}" = "CLANGARM64" ] || die "run this from an MSYS2 CLANGARM64 shell (MSYSTEM=${MSYSTEM:-unset}); see https://www.msys2.org/docs/environments/"
   [ -n "${MINGW_PREFIX:-}" ] || die "MINGW_PREFIX is not set"
-  command -v objdump >/dev/null || die "objdump not found (install mingw-w64-clang-aarch64-tools)"
+  local missing=" " c
+  for c in clang make objdump patch git sha256sum; do
+    command -v "$c" >/dev/null 2>&1 || missing="$missing$c "
+  done
+  [ "$missing" = " " ] || die "these commands are missing:$missing-- see the package list in the README"
 }
 
 # Configure options shared by both variants. See docs/BUILD.md for why each is here.
